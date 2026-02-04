@@ -48,11 +48,10 @@
                 
                 <div id="authContainer" class="w-full md:w-auto">
                     <button id="btnMasukWali" onclick="loginWaliKelas()" class="bg-orange-500 hover:bg-orange-600 text-white px-5 py-1.5 rounded-full text-xs font-bold shadow-md transition transform hover:scale-105 flex items-center justify-center gap-2 ml-0 md:ml-2 border-2 border-orange-400 w-full md:w-auto">
-                        <i class="fas fa-lock"></i> MASUK WALI KELAS
+                        <i class="fas fa-lock"></i> WALI KELAS
                     </button>
-
                     <button id="btnKeluarWali" onclick="logoutWaliKelas()" class="hidden bg-red-600 hover:bg-red-700 text-white px-5 py-1.5 rounded-full text-xs font-bold shadow-md transition transform hover:scale-105 flex items-center justify-center gap-2 ml-0 md:ml-2 border-2 border-red-500 w-full md:w-auto">
-                        <i class="fas fa-sign-out-alt"></i> KELUAR MODE WALI
+                        <i class="fas fa-sign-out-alt"></i> KELUAR
                     </button>
                 </div>
             </div>
@@ -63,7 +62,7 @@
 
         <div id="syncNotif" class="hidden mb-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-3 rounded shadow-md text-xs font-bold flex items-center gap-2">
             <i class="fas fa-sync fa-spin"></i>
-            <span>Mengambil data absensi hari ini dari server...</span>
+            <span>Mengambil data...</span>
         </div>
 
         <div id="panelWaliKelas" class="hidden mb-5 bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex flex-col md:flex-row justify-between items-center animate-bounce-in shadow-sm gap-3">
@@ -115,25 +114,7 @@
                     <label class="block text-[10px] font-bold text-gray-400 mb-1 ml-1 uppercase">Nama Guru</label>
                     <div class="relative">
                         <select id="namaGuru" class="w-full pl-3 pr-8 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold focus:ring-1 focus:ring-blue-500 outline-none appearance-none cursor-pointer hover:bg-white transition" required>
-                            <option value="" disabled selected> Pilih Guru </option>
-                            <option value="H.M. Azzharuddin, S.S, Gr">H.M. Azzharuddin, S.S, Gr</option>
-                            <option value="H.SOPYAN AL-ANSHORY,S.Pd.">H.SOPYAN AL-ANSHORY,S.Pd.</option>
-                            <option value="HIRFAN MAULANA ,S,E">HIRFAN MAULANA ,S,E</option>
-                            <option value="SITI HALIMATUSSA'DIYAH, S.Pd.">SITI HALIMATUSSA'DIYAH, S.Pd.</option>
-                            <option value="INDANA ZULFA AMELIA S.Pd, Gr">INDANA ZULFA AMELIA S.Pd, Gr</option>
-                            <option value="DINI RISTIYANI, S.Pd">DINI RISTIYANI, S.Pd</option>
-                            <option value="M.RAZAK FURQON">M.RAZAK FURQON</option>
-                            <option value="IRHANDI LESMANA, S.H">IRHANDI LESMANA, S.H</option>
-                            <option value="HAFIZAH,S.Pd.">HAFIZAH,S.Pd.</option>
-                            <option value="Lely Hidayati,S.Pd,Gr">Lely Hidayati,S.Pd,Gr</option>
-                            <option value="MUHAMMAD AKBAR, S.Ag">MUHAMMAD AKBAR, S.Ag</option>
-                            <option value="ARI SETIAWAN">ARI SETIAWAN</option>
-                            <option value="MUHAMMAD AMIN, S.Pd">MUHAMMAD AMIN, S.Pd</option>
-                            <option value="EKA LAELA ISWARI,S.E">EKA LAELA ISWARI,S.E</option>
-                            <option value="WILA MARDINI, S.Pd">WILA MARDINI, S.Pd</option>
-                            <option value="PARMI MARIANTI.S,Pd">PARMI MARIANTI.S,Pd</option>
-                            <option value="ROSITA YUSRIANTI, S.Pd">ROSITA YUSRIANTI, S.Pd</option>
-                            <option value="AHMAD DWI ARIADI, S.Par">AHMAD DWI ARIADI, S.Par</option>
+                            <option value="" disabled selected>⏳ Menunggu Data Server...</option>
                         </select>
                         <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 text-xs pointer-events-none"></i>
                     </div>
@@ -158,7 +139,7 @@
                             <option value="Qur'an Hadits">Qur'an Hadits</option>
                             <option value="Akidah Akhlak">Akidah Akhlak</option>
                             <option value="SKI">SKI</option>
-                            <option value="Nahwu Shorof">Nahwu Sharef</option>
+                            <option value="Nahwu Shorof">Nahwu Shorof</option>
                             <option value="Mulok/Bahasa Sasak">Mulok/Bahasa Sasak</option>
                         </select>
                         <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 text-xs pointer-events-none"></i>
