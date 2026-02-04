@@ -1,12 +1,44 @@
-body { font-family: 'Poppins', sans-serif; background-color: #1e408a; }
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #1e3a8a; }
-::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; border: 2px solid #1e3a8a; }
+/* ... (Kode Scrollbar tetap sama) ... */
 
-input[value="Hadir"]:checked + div { background-color: #10b981; color: white; border-color: #10b981; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4); }
-input[value="Sakit"]:checked + div { background-color: #f59e0b; color: white; border-color: #f59e0b; box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.4); }
-input[value="Izin"]:checked + div { background-color: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4); }
-input[value="Alfa"]:checked + div { background-color: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.4); }
+/* GAYA TOMBOL BARU SAAT DIPILIH (AKTIF) */
+/* Kita gunakan !important untuk memastikan warna menimpa style default tailwind */
 
+/* Hadir - Hijau */
+input[value="Hadir"]:checked + div {
+    background: linear-gradient(135deg, #10b981, #059669); /* Gradasi Hijau */
+    border-color: #059669;
+    color: white !important;
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4);
+}
+input[value="Hadir"]:checked + div i { color: white !important; opacity: 1; }
+
+/* Sakit - Kuning/Orange */
+input[value="Sakit"]:checked + div {
+    background: linear-gradient(135deg, #f59e0b, #d97706); /* Gradasi Kuning */
+    border-color: #d97706;
+    color: white !important;
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.4);
+}
+input[value="Sakit"]:checked + div i { color: white !important; opacity: 1; }
+
+/* Izin - Biru */
+input[value="Izin"]:checked + div {
+    background: linear-gradient(135deg, #3b82f6, #2563eb); /* Gradasi Biru */
+    border-color: #2563eb;
+    color: white !important;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
+}
+input[value="Izin"]:checked + div i { color: white !important; opacity: 1; }
+
+/* Alfa - Merah */
+input[value="Alfa"]:checked + div {
+    background: linear-gradient(135deg, #ef4444, #dc2626); /* Gradasi Merah */
+    border-color: #dc2626;
+    color: white !important;
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.4);
+}
+input[value="Alfa"]:checked + div i { color: white !important; opacity: 1; }
+
+/* Font Setting */
 .flatpickr-calendar { font-family: 'Poppins', sans-serif; }
 .flatpickr-time input { font-weight: bold; }
