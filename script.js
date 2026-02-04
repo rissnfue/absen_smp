@@ -1,22 +1,18 @@
 // ==========================================
 // KONFIGURASI UTAMA
 // ==========================================
-// 1. URL SCRIPT (Pastikan ini URL hasil Deploy terbaru Anda)
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeL2D-gu2wxNwcmcsAkp2cYOZxiet8V5LdwKQ7mcG_qKbxmX5VkcUQxk5tU3ZZtnJ-Zg/exec'; 
 
-// 2. ID SPREADSHEET
 const SPREADSHEET_ID = "1dJzZGCJ4wbXd544GBjc7PATynD74zxiGAz7HQDlxmwE"; 
 
-// 3. ID SHEET (GID) PER KELAS (Sesuai data yang Anda berikan)
 const SHEET_GIDS = {
-    "7": "2076466100", // GID Kelas 7
-    "8": "0",          // GID Kelas 8 (Sheet Utama/Default)
-    "9": "462314653"   // GID Kelas 9
+    "7": "2076466100", 
+    "8": "0",          
+    "9": "462314653"   
 };
 
 const PASSWORD_WALI = { "7": "wali7", "8": "wali8", "9": "admin123" };
 
-// DATA SISWA (Akan diisi otomatis dari Google Sheet)
 let DB_SISWA = { "7": [], "8": [], "9": [] };
 
 let currentKelas = "9"; 
@@ -32,7 +28,6 @@ setInterval(updateClock, 1000);
 document.addEventListener('DOMContentLoaded', () => {
     updateClock();
     
-    // Config Tanggal
     flatpickr("#inputTanggal", {
         dateFormat: "Y-m-d", altInput: true, altFormat: "l, j F Y", defaultDate: "today", locale: "id", disableMobile: "true", allowInput: false,
         onChange: function(selectedDates, dateStr, instance) {
@@ -44,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const today = new Date();
     currentDateVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-    // Config Jam
     const configTime = { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, disableMobile: "true" };
     const fpMulai = flatpickr("#jamMulai", {...configTime, defaultDate: new Date()});
     const nextHour = new Date(); nextHour.setHours(nextHour.getHours() + 1);
@@ -53,42 +47,31 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('wrapperJamMulai').addEventListener('click', () => fpMulai.open());
     document.getElementById('wrapperJamSelesai').addEventListener('click', () => document.querySelector('#jamSelesai')._flatpickr.open());
 
-    // Ambil Data & Set Link Download Awal
     fetchDataMaster();
     updateDownloadLinks(); 
 });
 
-// --- PERBAIKAN: FUNGSI UPDATE LINK DOWNLOAD ---
+// --- PERBAIKAN UTAMA: FUNGSI DOWNLOAD SINGLE SHEET ---
 function updateDownloadLinks() {
     const gid = SHEET_GIDS[currentKelas];
-    // Jika GID tidak ditemukan, jangan lakukan apa-apa
-    if (gid === undefined || gid === null) return; 
+    if (!gid && gid !== "0") return; 
 
-    // URL dasar ekspor
     const baseUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export`;
     
-    // Parameter 'single=true' dan 'gid=...' adalah kunci agar hanya 1 tab yang terdownload
-    // Parameter 'exportFormat=pdf' digunakan untuk memastikan format yang benar
-    const pdfUrl = `${baseUrl}?format=pdf&gid=${gid}&single=true&size=A4&portrait=true&fitw=true&gridlines=false&printtitle=false&sheetnames=false`;
+    // Parameter 'single=true' memastikan hanya gid tersebut yang diunduh
+    const pdfUrl = `${baseUrl}?format=pdf&gid=${gid}&single=true&size=A4&portrait=true&fitw=true&gridlines=false`;
     const xlsxUrl = `${baseUrl}?format=xlsx&gid=${gid}&single=true`;
 
-    // Pasang link ke tombol
-    const pdfBtn = document.getElementById('btnDownloadPdf');
-    const excelBtn = document.getElementById('btnDownloadExcel');
-
-    if (pdfBtn) pdfBtn.href = pdfUrl;
-    if (excelBtn) excelBtn.href = xlsxUrl;
-    
-    console.log("Link Download diperbarui untuk Kelas:", currentKelas, "dengan GID:", gid);
+    document.getElementById('btnDownloadPdf').href = pdfUrl;
+    document.getElementById('btnDownloadExcel').href = xlsxUrl;
 }
 
-// --- FUNGSI AMBIL DATA MASTER (GURU & SISWA) ---
 function fetchDataMaster() {
     const selectGuru = document.getElementById('namaGuru');
     if(selectGuru) selectGuru.innerHTML = '<option>⏳ Sedang mengambil data...</option>';
     
     const containerSiswa = document.getElementById('listSiswa');
-    if(containerSiswa) containerSiswa.innerHTML = '<div class="col-span-full text-center py-10 text-gray-200 font-bold animate-pulse text-lg">Sedang mengunduh data siswa & guru dari server...<br><span class="text-sm font-normal">Mohon tunggu sebentar</span></div>';
+    if(containerSiswa) containerSiswa.innerHTML = '<div class="col-span-full text-center py-10 text-gray-200 font-bold animate-pulse text-lg">Sedang mengunduh data siswa & guru dari server...</div>';
 
     fetch(SCRIPT_URL, {
         method: 'POST',
@@ -111,14 +94,11 @@ function fetchDataMaster() {
 
             renderSiswa();
             cekAbsensiHariIni();
-            
-            const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 3000});
-            Toast.fire({ icon: 'success', title: 'Data Siap Digunakan' });
         }
     })
     .catch(err => {
         console.error(err);
-        Swal.fire('Gagal Load Data', 'Pastikan internet lancar & URL Script benar.', 'error');
+        Swal.fire('Gagal Load Data', 'Periksa koneksi internet.', 'error');
     });
 }
 
@@ -127,7 +107,7 @@ function gantiKelas() {
     renderSiswa();
     logoutWaliKelas();
     cekAbsensiHariIni();
-    updateDownloadLinks(); // UPDATE LINK SAAT GANTI KELAS
+    updateDownloadLinks(); 
 }
 
 function renderSiswa() {
@@ -136,7 +116,7 @@ function renderSiswa() {
     const siswaList = DB_SISWA[currentKelas];
     
     if (!siswaList || siswaList.length === 0) {
-        container.innerHTML = `<div class="col-span-full text-center py-10 text-white/50 italic">Belum ada data siswa untuk Kelas ${currentKelas} di Google Sheet.</div>`;
+        container.innerHTML = `<div class="col-span-full text-center py-10 text-white/50 italic">Belum ada data siswa untuk Kelas ${currentKelas}.</div>`;
         return;
     }
     
@@ -167,17 +147,14 @@ function renderTombol(id, val, icon, colorClass) {
     return `
     <label class="cursor-pointer group block relative h-20">
         <input type="radio" name="status_${id}" value="${val}" class="hidden peer" onchange="updateSummary()">
-        
         <div class="w-full h-full rounded-xl border-2 border-gray-100 bg-gray-50 text-gray-400 
                     transition-all duration-200 ease-in-out
                     hover:bg-gray-100 hover:border-gray-300 active:scale-95
                     peer-checked:scale-100 peer-checked:shadow-lg peer-checked:border-transparent
                     flex flex-col items-center justify-center gap-1">
-            
             <i class="fas fa-${icon} text-3xl mb-1 ${colorClass} opacity-40 group-hover:opacity-80 peer-checked:opacity-100 transition-opacity"></i>
             <span class="text-[11px] font-black uppercase tracking-widest peer-checked:text-white">${val}</span>
         </div>
-        
         <div class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-gray-200 peer-checked:bg-white transition-colors shadow-sm"></div>
     </label>`;
 }
@@ -192,8 +169,6 @@ function updateSummary() {
 function setAllHadir() {
     document.querySelectorAll('input[value="Hadir"]').forEach(r => r.checked = true);
     updateSummary();
-    const Toast = Swal.mixin({toast: true, position: 'top', showConfirmButton: false, timer: 1500});
-    Toast.fire({ icon: 'success', title: 'Semua Hadir' });
 }
 
 function loginWaliKelas() {
@@ -205,7 +180,6 @@ function loginWaliKelas() {
             document.getElementById('labelWaliKelas').innerText = `Kelas ${currentKelas}`;
             document.getElementById('btnMasukWali').classList.add('hidden');
             document.getElementById('btnKeluarWali').classList.remove('hidden');
-            Swal.fire('Sukses', `Akses Wali Kelas ${currentKelas} Diterima.`, 'success');
         } else if (result.value) { Swal.fire('Gagal', 'Kode salah.', 'error'); }
     });
 }
@@ -218,10 +192,7 @@ function logoutWaliKelas() {
 
 function cekAbsensiHariIni() {
     const notif = document.getElementById('syncNotif');
-    if(notif) {
-        notif.classList.remove('hidden');
-        notif.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cek data absensi tanggal ini...';
-    }
+    if(notif) notif.classList.remove('hidden');
 
     fetch(SCRIPT_URL, {
         method: 'POST',
@@ -233,10 +204,6 @@ function cekAbsensiHariIni() {
     .then(res => res.json())
     .then(response => {
         if (response.result === 'success' && response.found) {
-            if(notif) {
-                notif.className = "mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-3 rounded shadow-md text-xs font-bold flex items-center gap-2";
-                notif.innerHTML = '<i class="fas fa-check-circle"></i> Data absensi hari ini ditemukan. Formulir diisi otomatis.';
-            }
             const statuses = response.statuses; 
             const siswaList = DB_SISWA[currentKelas];
             if(siswaList && statuses) {
@@ -249,14 +216,8 @@ function cekAbsensiHariIni() {
                 });
             }
             updateSummary();
-        } else {
-            if(notif) {
-                notif.className = "mb-4 bg-gray-100 border-l-4 border-gray-500 text-gray-700 p-3 rounded shadow-md text-xs font-bold flex items-center gap-2";
-                notif.innerHTML = '<i class="fas fa-info-circle"></i> Belum ada data absensi untuk tanggal/kelas ini.';
-            }
-            updateSummary();
         }
-        if(notif) setTimeout(() => { notif.classList.add('hidden'); }, 3000);
+        if(notif) setTimeout(() => { notif.classList.add('hidden'); }, 1500);
     })
     .catch(err => { console.error(err); if(notif) notif.classList.add('hidden'); });
 }
@@ -272,7 +233,7 @@ function kirimAbsensi() {
     const jamSelesai = document.getElementById('jamSelesai').value;
 
     if(!namaGuru || !mapel || !materi || !jamMulai || !jamSelesai || !tglInput) {
-        Swal.fire('Data Kurang', 'Pastikan Tanggal & Form Terisi.', 'warning');
+        Swal.fire('Data Kurang', 'Lengkapi formulir.', 'warning');
         return;
     }
 
@@ -280,17 +241,14 @@ function kirimAbsensi() {
     const originalBtnText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Mengirim...';
     btn.disabled = true;
-    btn.classList.add('opacity-50', 'cursor-not-allowed');
 
     const jamPelajaran = `${jamMulai}-${jamSelesai}`;
     let listAbsen = [];
     const siswaList = DB_SISWA[currentKelas];
-    if(siswaList) {
-        siswaList.forEach(siswa => {
-            const radio = document.querySelector(`input[name="status_${siswa.id}"]:checked`);
-            listAbsen.push({ nama: siswa.nama, status: radio ? radio.value : "Alfa" });
-        });
-    }
+    siswaList.forEach(siswa => {
+        const radio = document.querySelector(`input[name="status_${siswa.id}"]:checked`);
+        listAbsen.push({ nama: siswa.nama, status: radio ? radio.value : "Alfa" });
+    });
 
     const payload = {
         action: 'simpan',
@@ -302,38 +260,30 @@ function kirimAbsensi() {
     .then(res => res.json())
     .then(response => {
         if(response.result === 'success') {
-            Swal.fire('Terkirim!', `Data Kelas ${currentKelas} Tersimpan.`, 'success');
+            Swal.fire('Terkirim!', `Data Tersimpan.`, 'success');
             lastInsertedInfo = { startRow: response.startRow, count: 1, kelas: currentKelas };
             document.getElementById('undoContainer').classList.remove('hidden');
             btn.innerHTML = originalBtnText;
             btn.disabled = false;
-            btn.classList.remove('opacity-50', 'cursor-not-allowed');
             isSubmitting = false; 
-        } else { throw new Error("Server Error"); }
+        }
     })
     .catch(err => {
         Swal.fire('Gagal', 'Koneksi error.', 'error');
         btn.innerHTML = originalBtnText;
         btn.disabled = false;
-        btn.classList.remove('opacity-50', 'cursor-not-allowed');
         isSubmitting = false; 
     });
 }
 
 async function batalkanInput() {
     if(!lastInsertedInfo) return;
-    if(lastInsertedInfo.kelas !== currentKelas) {
-        Swal.fire('Gagal', `Pindah ke Kelas ${lastInsertedInfo.kelas} dulu.`, 'error'); return;
-    }
-    const result = await Swal.fire({ title: 'Hapus data ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus!' });
+    const result = await Swal.fire({ title: 'Hapus data ini?', icon: 'warning', showCancelButton: true });
     if (result.isConfirmed) {
-        Swal.fire({title: 'Menghapus...', allowOutsideClick: false, didOpen: () => {Swal.showLoading()}});
-        try {
-            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'hapus', row: lastInsertedInfo.startRow, count: 1, header: { kelas: currentKelas } }) });
+        fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'hapus', row: lastInsertedInfo.startRow, count: 1, header: { kelas: currentKelas } }) })
+        .then(() => {
             Swal.fire('Dihapus!', '', 'success');
             document.getElementById('undoContainer').classList.add('hidden');
-            lastInsertedInfo = null;
-        } catch (e) { Swal.fire('Gagal', 'Koneksi bermasalah', 'error'); }
+        });
     }
 }
-
