@@ -1,7 +1,6 @@
 // ==========================================
 // KONFIGURASI
 // ==========================================
-// PASTIKAN GANTI KE URL BARU HASIL DEPLOY
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyX4SQ_BvAT04is6CO3onC21Rb9nrPl3n5kZ9FKCAh_i2qr-P3QP-4ty5aLEePqnmA0og/exec'; 
 const PASSWORD_WALI = { "7": "wali7", "8": "wali8", "9": "wali9" };
 
@@ -54,14 +53,12 @@ document.addEventListener('DOMContentLoaded', () => {
         locale: "id", 
         disableMobile: "true",
         allowInput: false,
-        // Saat tanggal berubah, cek database
         onChange: function(selectedDates, dateStr, instance) {
             currentDateVal = dateStr;
             cekAbsensiHariIni();
         }
     });
     
-    // Simpan tanggal awal untuk cek pertama kali
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -77,19 +74,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('wrapperJamSelesai').addEventListener('click', () => document.querySelector('#jamSelesai')._flatpickr.open());
 
     renderSiswa(); 
-    // Cek absensi saat pertama kali buka
     cekAbsensiHariIni();
 });
 
+// --- UPDATE: GANTI KELAS & AUTO LOGOUT ---
 function gantiKelas() {
     currentKelas = document.getElementById('pilihKelas').value;
     renderSiswa();
-    document.getElementById('panelWaliKelas').classList.add('hidden');
-    // Cek lagi karena kelas berubah
+    // Otomatis logout jika ganti kelas agar aman
+    logoutWaliKelas();
     cekAbsensiHariIni();
 }
 
-// --- FUNGSI CEK STATUS TERAKHIR DI SERVER ---
 function cekAbsensiHariIni() {
     const notif = document.getElementById('syncNotif');
     notif.classList.remove('hidden');
@@ -108,36 +104,28 @@ function cekAbsensiHariIni() {
     .then(res => res.json())
     .then(response => {
         if (response.result === 'success' && response.found) {
-            // DATA KETEMU! ISI OTOMATIS
             notif.className = "mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-3 rounded shadow-md text-xs font-bold flex items-center gap-2";
             notif.innerHTML = '<i class="fas fa-check-circle"></i> Data absensi hari ini ditemukan. Formulir diisi otomatis.';
             
-            const statuses = response.statuses; // Array ['Hadir', 'Sakit', ...]
+            const statuses = response.statuses; 
             const siswaList = DB_SISWA[currentKelas];
 
-            // Loop siswa dan set radio button sesuai urutan array
             siswaList.forEach((siswa, index) => {
                 if (statuses[index]) {
-                    // Cari radio button dengan value yang sesuai dan centang
                     const radio = document.querySelector(`input[name="status_${siswa.id}"][value="${statuses[index].trim()}"]`);
                     if (radio) {
                         radio.checked = true;
                     }
                 }
             });
-            updateSummary(); // Update angka dashboard
+            updateSummary();
 
         } else {
-            // DATA KOSONG (Belum ada yang absen hari ini)
             notif.className = "mb-4 bg-gray-100 border-l-4 border-gray-500 text-gray-700 p-3 rounded shadow-md text-xs font-bold flex items-center gap-2";
             notif.innerHTML = '<i class="fas fa-info-circle"></i> Belum ada data absensi untuk tanggal/kelas ini.';
-            
-            // Reset ke default (kosongkan atau set hadir semua terserah, di sini kita biarkan apa adanya/kosong)
-            // document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
             updateSummary();
         }
         
-        // Sembunyikan notif setelah 3 detik
         setTimeout(() => {
             notif.classList.add('hidden');
         }, 3000);
@@ -190,13 +178,20 @@ function setAllHadir() {
     Swal.fire({icon: 'success', title: 'Siap!', text: 'Semua Hadir', timer: 800, showConfirmButton: false});
 }
 
+// --- FUNGSI LOGIN WALI KELAS (UPDATE UI NAVBAR) ---
 function loginWaliKelas() {
     Swal.fire({
         title: `Wali Kelas ${currentKelas}`, input: 'password', inputPlaceholder: 'Kode Akses...', confirmButtonColor: '#f97316', showCancelButton: true
     }).then((result) => {
         if (result.value === PASSWORD_WALI[currentKelas]) {
+            // Tampilkan Panel Wali Kelas
             document.getElementById('panelWaliKelas').classList.remove('hidden');
             document.getElementById('labelWaliKelas').innerText = `Kelas ${currentKelas}`;
+            
+            // Ubah Tombol di Navbar (Sembunyikan Masuk, Tampilkan Keluar)
+            document.getElementById('btnMasukWali').classList.add('hidden');
+            document.getElementById('btnKeluarWali').classList.remove('hidden');
+
             Swal.fire('Sukses', `Akses Wali Kelas ${currentKelas} Diterima.`, 'success');
         } else if (result.value) { Swal.fire('Gagal', 'Kode salah.', 'error'); }
     });
@@ -204,14 +199,15 @@ function loginWaliKelas() {
 
 // --- FUNGSI LOGOUT WALI KELAS (BARU) ---
 function logoutWaliKelas() {
+    // Sembunyikan Panel
     document.getElementById('panelWaliKelas').classList.add('hidden');
-    Swal.fire({
-        icon: 'info',
-        title: 'Mode Guru',
-        text: 'Anda telah keluar dari mode Wali Kelas.',
-        timer: 1500,
-        showConfirmButton: false
-    });
+    
+    // Ubah Tombol di Navbar (Tampilkan Masuk, Sembunyikan Keluar)
+    document.getElementById('btnMasukWali').classList.remove('hidden');
+    document.getElementById('btnKeluarWali').classList.add('hidden');
+
+    // Optional: Alert (Bisa dihapus jika mengganggu)
+    // Swal.fire({ icon: 'info', title: 'Mode Guru', text: 'Keluar dari mode Wali.', timer: 1000, showConfirmButton: false });
 }
 
 function kirimAbsensi() {
@@ -221,7 +217,7 @@ function kirimAbsensi() {
     const namaGuru = document.getElementById('namaGuru').value;
     const mapel = document.getElementById('mapel').value;
     const materi = document.getElementById('materi').value;
-    const tglInput = document.getElementById('inputTanggal').value; // Mengambil value asli flatpickr
+    const tglInput = document.getElementById('inputTanggal').value; 
     const jamMulai = document.getElementById('jamMulai').value;
     const jamSelesai = document.getElementById('jamSelesai').value;
 
@@ -252,7 +248,7 @@ function kirimAbsensi() {
         header: {
             kelas: currentKelas,
             jam_pelajaran: jamPelajaran,
-            tanggal: tglInput, // Kirim format YYYY-MM-DD
+            tanggal: tglInput, 
             nama_guru: namaGuru,
             mapel: mapel,
             materi: materi
