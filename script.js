@@ -202,6 +202,18 @@ function loginWaliKelas() {
     });
 }
 
+// --- FUNGSI LOGOUT WALI KELAS (BARU) ---
+function logoutWaliKelas() {
+    document.getElementById('panelWaliKelas').classList.add('hidden');
+    Swal.fire({
+        icon: 'info',
+        title: 'Mode Guru',
+        text: 'Anda telah keluar dari mode Wali Kelas.',
+        timer: 1500,
+        showConfirmButton: false
+    });
+}
+
 function kirimAbsensi() {
     if (isSubmitting) return;
 
