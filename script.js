@@ -144,21 +144,45 @@ function renderSiswa() {
     let html = '';
     siswaList.forEach(siswa => {
         html += `
-        <div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100 hover:shadow-md transition">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">${siswa.nama.substring(0,2).toUpperCase()}</div>
-                <h4 class="font-bold text-gray-700 text-xs truncate">${siswa.nama}</h4>
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition duration-300">
+            <div class="flex items-center gap-3 mb-3 pb-2 border-b border-gray-100">
+                <div class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md">
+                    ${siswa.nama.substring(0,2).toUpperCase()}
+                </div>
+                <h4 class="font-bold text-gray-800 text-sm truncate uppercase tracking-tight">${siswa.nama}</h4>
             </div>
-            <div class="grid grid-cols-4 gap-1">
-                ${renderTombol(siswa.id, 'Hadir', 'check')}
-                ${renderTombol(siswa.id, 'Sakit', 'bed')}
-                ${renderTombol(siswa.id, 'Izin', 'envelope')}
-                ${renderTombol(siswa.id, 'Alfa', 'times')}
+
+            <div class="grid grid-cols-4 gap-2">
+                ${renderTombol(siswa.id, 'Hadir', 'check', 'text-green-500')}
+                ${renderTombol(siswa.id, 'Sakit', 'procedures', 'text-yellow-500')}
+                ${renderTombol(siswa.id, 'Izin', 'envelope-open-text', 'text-blue-500')}
+                ${renderTombol(siswa.id, 'Alfa', 'times-circle', 'text-red-500')}
             </div>
         </div>`;
     });
     container.innerHTML = html;
     updateSummary();
+}
+
+function renderTombol(id, val, icon, colorClass) {
+    // Tombol lebih tinggi (py-3), border lebih tegas, dan icon lebih besar (text-lg)
+    return `
+    <label class="cursor-pointer group block relative">
+        <input type="radio" name="status_${id}" value="${val}" class="hidden peer" onchange="updateSummary()">
+        
+        <div class="py-3 rounded-lg border-2 border-gray-100 bg-gray-50 text-center text-gray-400 
+                    transition-all duration-200 ease-in-out
+                    hover:bg-gray-100 hover:border-gray-300 hover:scale-105 hover:shadow-sm
+                    peer-checked:scale-100 peer-checked:shadow-md
+                    flex flex-col items-center justify-center gap-1 h-full">
+            
+            <i class="fas fa-${icon} text-lg mb-0.5 ${colorClass} opacity-60 group-hover:opacity-100 transition-opacity"></i>
+            
+            <span class="text-[10px] font-extrabold uppercase tracking-wider">${val}</span>
+        </div>
+        
+        <div class="absolute top-1 right-1 w-2 h-2 rounded-full bg-current opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+    </label>`;
 }
 
 function renderTombol(id, val, icon) {
@@ -305,3 +329,4 @@ async function batalkanInput() {
         } catch (e) { Swal.fire('Gagal', 'Koneksi bermasalah', 'error'); }
     }
 }
+
