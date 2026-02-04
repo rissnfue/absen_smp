@@ -3,7 +3,7 @@
 // ==========================================
 // PENTING: GANTI DENGAN URL DEPLOY BARU ANDA!
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeL2D-gu2wxNwcmcsAkp2cYOZxiet8V5LdwKQ7mcG_qKbxmX5VkcUQxk5tU3ZZtnJ-Zg/exec'; 
-const PASSWORD_WALI = { "7": "wali7", "8": "wali8", "9": "admin123" };
+const PASSWORD_WALI = { "7": "wali7", "8": "wali8", "9": "wali9" };
 
 // ARRAY KOSONG (Nanti diisi dari Sheet)
 let DB_SISWA = { "7": [], "8": [], "9": [] };
@@ -67,7 +67,7 @@ function fetchDataMaster() {
             
             // 2. ISI DROPDOWN GURU
             if(selectGuru) {
-                selectGuru.innerHTML = '<option value="" disabled selected>Pilih Guru</option>';
+                selectGuru.innerHTML = '<option value="" disabled selected> Pilih Guru </option>';
                 response.gurus.forEach(guru => {
                     let option = document.createElement("option");
                     option.text = guru;
@@ -304,5 +304,6 @@ async function batalkanInput() {
         } catch (e) { Swal.fire('Gagal', 'Koneksi bermasalah', 'error'); }
     }
 }
+
 
 
