@@ -1,0 +1,12 @@
+body { font-family: 'Poppins', sans-serif; background-color: #1e408a; }
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #1e3a8a; }
+::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; border: 2px solid #1e3a8a; }
+
+input[value="Hadir"]:checked + div { background-color: #10b981; color: white; border-color: #10b981; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4); }
+input[value="Sakit"]:checked + div { background-color: #f59e0b; color: white; border-color: #f59e0b; box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.4); }
+input[value="Izin"]:checked + div { background-color: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4); }
+input[value="Alfa"]:checked + div { background-color: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.4); }
+
+.flatpickr-calendar { font-family: 'Poppins', sans-serif; }
+.flatpickr-time input { font-weight: bold; }
