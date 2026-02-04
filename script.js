@@ -11,7 +11,7 @@ const SHEET_GIDS = {
     "9": "462314653"   
 };
 
-const PASSWORD_WALI = { "7": "wali7", "8": "wali8", "9": "admin123" };
+const PASSWORD_WALI = { "7": "wali7", "8": "wali8", "9": "wali9" };
 
 let DB_SISWA = { "7": [], "8": [], "9": [] };
 
@@ -287,3 +287,4 @@ async function batalkanInput() {
         });
     }
 }
+
