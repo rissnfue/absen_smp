@@ -1,36 +1,12 @@
 // ==========================================
 // KONFIGURASI
 // ==========================================
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyX4SQ_BvAT04is6CO3onC21Rb9nrPl3n5kZ9FKCAh_i2qr-P3QP-4ty5aLEePqnmA0og/exec'; 
-const PASSWORD_WALI = { "7": "wali7", "8": "wali8", "9": "wali9" };
+// PENTING: GANTI DENGAN URL DEPLOY BARU ANDA!
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeL2D-gu2wxNwcmcsAkp2cYOZxiet8V5LdwKQ7mcG_qKbxmX5VkcUQxk5tU3ZZtnJ-Zg/exec'; 
+const PASSWORD_WALI = { "7": "wali7", "8": "wali8", "9": "admin123" };
 
-const DB_SISWA = {
-    "7": [
-        { id: 701, nama: "AHMAD WIRAHADI KUSUMA" },
-        { id: 702, nama: "FATHIR PUTRA NEGARA" },
-        { id: 703, nama: "NURUL HASANAH" },
-        { id: 704, nama: "RIZKI ADITIA PRATAMA" },
-        { id: 705, nama: "SERI BANUN" }
-    ],
-    "8": [
-        { id: 801, nama: "DAVID AL ROSYID" },
-        { id: 802, nama: "HENDRA PRATAMA" },
-        { id: 803, nama: "HUZAINI ADITYA" },
-        { id: 804, nama: "MIZA KALIANA PUTRI" },
-        { id: 805, nama: "MUHAMAD ALI FIKRI" },
-        { id: 806, nama: "WANDI KILAL FAROZI" },
-        { id: 807, nama: "WARDATUL AZZAZIAH" },
-        { id: 808, nama: "WARDATUL MARDIAH" },
-        { id: 809, nama: "ZIADATUL KHAIR" }
-    ],
-    "9": [
-        { id: 1, nama: "Asrina" },
-        { id: 2, nama: "Muhammad Amir Usroni" },
-        { id: 3, nama: "Muhammad Nurdin Irwan" },
-        { id: 4, nama: "Muhammad Ihwan Masjudin" },
-        { id: 5, nama: "Seftiana Rianti" }
-    ]
-};
+// ARRAY KOSONG (Nanti diisi dari Sheet)
+let DB_SISWA = { "7": [], "8": [], "9": [] };
 
 let currentKelas = "9"; 
 let lastInsertedInfo = null;
@@ -45,14 +21,9 @@ setInterval(updateClock, 1000);
 document.addEventListener('DOMContentLoaded', () => {
     updateClock();
     
+    // Config Tanggal
     flatpickr("#inputTanggal", {
-        dateFormat: "Y-m-d",
-        altInput: true,
-        altFormat: "l, j F Y",
-        defaultDate: "today",
-        locale: "id", 
-        disableMobile: "true",
-        allowInput: false,
+        dateFormat: "Y-m-d", altInput: true, altFormat: "l, j F Y", defaultDate: "today", locale: "id", disableMobile: "true", allowInput: false,
         onChange: function(selectedDates, dateStr, instance) {
             currentDateVal = dateStr;
             cekAbsensiHariIni();
@@ -60,11 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    currentDateVal = `${year}-${month}-${day}`;
+    currentDateVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
+    // Config Jam
     const configTime = { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, disableMobile: "true" };
     const fpMulai = flatpickr("#jamMulai", {...configTime, defaultDate: new Date()});
     const nextHour = new Date(); nextHour.setHours(nextHour.getHours() + 1);
@@ -73,67 +42,59 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('wrapperJamMulai').addEventListener('click', () => fpMulai.open());
     document.getElementById('wrapperJamSelesai').addEventListener('click', () => document.querySelector('#jamSelesai')._flatpickr.open());
 
-    renderSiswa(); 
-    cekAbsensiHariIni();
+    // --- PANGGIL DATA MASTER (GURU & SISWA) ---
+    fetchDataMaster();
 });
 
-// --- UPDATE: GANTI KELAS & AUTO LOGOUT ---
-function gantiKelas() {
-    currentKelas = document.getElementById('pilihKelas').value;
-    renderSiswa();
-    // Otomatis logout jika ganti kelas agar aman
-    logoutWaliKelas();
-    cekAbsensiHariIni();
-}
-
-function cekAbsensiHariIni() {
-    const notif = document.getElementById('syncNotif');
-    notif.classList.remove('hidden');
-    notif.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cek data absensi tanggal ini...';
+// --- FUNGSI AMBIL DATA DARI SHEET ---
+function fetchDataMaster() {
+    // Show Loading
+    const selectGuru = document.getElementById('namaGuru');
+    if(selectGuru) selectGuru.innerHTML = '<option>⏳ Sedang mengambil data...</option>';
+    
+    const containerSiswa = document.getElementById('listSiswa');
+    if(containerSiswa) containerSiswa.innerHTML = '<div class="col-span-full text-center py-10 text-gray-200 font-bold animate-pulse text-lg">Sedang mengunduh data siswa & guru dari server...<br><span class="text-sm font-normal">Mohon tunggu sebentar</span></div>';
 
     fetch(SCRIPT_URL, {
         method: 'POST',
-        body: JSON.stringify({
-            action: 'get_latest_status',
-            header: {
-                kelas: currentKelas,
-                tanggal_raw: currentDateVal
-            }
-        })
+        body: JSON.stringify({ action: 'get_master_data' })
     })
     .then(res => res.json())
     .then(response => {
-        if (response.result === 'success' && response.found) {
-            notif.className = "mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-3 rounded shadow-md text-xs font-bold flex items-center gap-2";
-            notif.innerHTML = '<i class="fas fa-check-circle"></i> Data absensi hari ini ditemukan. Formulir diisi otomatis.';
+        if(response.result === 'success') {
+            // 1. ISI ARRAY SISWA
+            DB_SISWA = response.students;
             
-            const statuses = response.statuses; 
-            const siswaList = DB_SISWA[currentKelas];
+            // 2. ISI DROPDOWN GURU
+            if(selectGuru) {
+                selectGuru.innerHTML = '<option value="" disabled selected>-- Pilih Guru --</option>';
+                response.gurus.forEach(guru => {
+                    let option = document.createElement("option");
+                    option.text = guru;
+                    option.value = guru;
+                    selectGuru.add(option);
+                });
+            }
 
-            siswaList.forEach((siswa, index) => {
-                if (statuses[index]) {
-                    const radio = document.querySelector(`input[name="status_${siswa.id}"][value="${statuses[index].trim()}"]`);
-                    if (radio) {
-                        radio.checked = true;
-                    }
-                }
-            });
-            updateSummary();
-
-        } else {
-            notif.className = "mb-4 bg-gray-100 border-l-4 border-gray-500 text-gray-700 p-3 rounded shadow-md text-xs font-bold flex items-center gap-2";
-            notif.innerHTML = '<i class="fas fa-info-circle"></i> Belum ada data absensi untuk tanggal/kelas ini.';
-            updateSummary();
+            // 3. RENDER ULANG
+            renderSiswa();
+            cekAbsensiHariIni();
+            
+            const Toast = Swal.mixin({toast: true, position: 'top-end', showConfirmButton: false, timer: 3000});
+            Toast.fire({ icon: 'success', title: 'Data Siap Digunakan' });
         }
-        
-        setTimeout(() => {
-            notif.classList.add('hidden');
-        }, 3000);
     })
     .catch(err => {
         console.error(err);
-        notif.classList.add('hidden');
+        Swal.fire('Gagal Load Data', 'Pastikan internet lancar & URL Script benar.', 'error');
     });
+}
+
+function gantiKelas() {
+    currentKelas = document.getElementById('pilihKelas').value;
+    renderSiswa();
+    logoutWaliKelas();
+    cekAbsensiHariIni();
 }
 
 function renderSiswa() {
@@ -141,22 +102,27 @@ function renderSiswa() {
     container.innerHTML = '';
     const siswaList = DB_SISWA[currentKelas];
     
+    if (!siswaList || siswaList.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-10 text-white/50 italic">Belum ada data siswa untuk Kelas ${currentKelas} di Google Sheet (Tab Data_Siswa).</div>`;
+        return;
+    }
+    
     let html = '';
     siswaList.forEach(siswa => {
         html += `
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition duration-300">
-            <div class="flex items-center gap-3 mb-3 pb-2 border-b border-gray-100">
-                <div class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md">
+        <div class="bg-white rounded-xl p-4 shadow-md border-b-4 border-blue-200 hover:border-blue-400 transition-all duration-300">
+            <div class="flex items-center gap-3 mb-4 pb-2 border-b border-gray-100">
+                <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-base shadow-md">
                     ${siswa.nama.substring(0,2).toUpperCase()}
                 </div>
                 <h4 class="font-bold text-gray-800 text-sm truncate uppercase tracking-tight">${siswa.nama}</h4>
             </div>
-
+            
             <div class="grid grid-cols-4 gap-2">
-                ${renderTombol(siswa.id, 'Hadir', 'check', 'text-green-500')}
-                ${renderTombol(siswa.id, 'Sakit', 'procedures', 'text-yellow-500')}
-                ${renderTombol(siswa.id, 'Izin', 'envelope-open-text', 'text-blue-500')}
-                ${renderTombol(siswa.id, 'Alfa', 'times-circle', 'text-red-500')}
+                ${renderTombol(siswa.id, 'Hadir', 'check', 'text-green-600')}
+                ${renderTombol(siswa.id, 'Sakit', 'procedures', 'text-yellow-600')}
+                ${renderTombol(siswa.id, 'Izin', 'envelope-open-text', 'text-blue-600')}
+                ${renderTombol(siswa.id, 'Alfa', 'times-circle', 'text-red-600')}
             </div>
         </div>`;
     });
@@ -165,28 +131,23 @@ function renderSiswa() {
 }
 
 function renderTombol(id, val, icon, colorClass) {
-    // Tombol lebih tinggi (py-3), border lebih tegas, dan icon lebih besar (text-lg)
+    // Height 20 (h-20) agar tombol tinggi dan mudah ditekan
     return `
-    <label class="cursor-pointer group block relative">
+    <label class="cursor-pointer group block relative h-20">
         <input type="radio" name="status_${id}" value="${val}" class="hidden peer" onchange="updateSummary()">
         
-        <div class="py-3 rounded-lg border-2 border-gray-100 bg-gray-50 text-center text-gray-400 
+        <div class="w-full h-full rounded-xl border-2 border-gray-100 bg-gray-50 text-gray-400 
                     transition-all duration-200 ease-in-out
-                    hover:bg-gray-100 hover:border-gray-300 hover:scale-105 hover:shadow-sm
-                    peer-checked:scale-100 peer-checked:shadow-md
-                    flex flex-col items-center justify-center gap-1 h-full">
+                    hover:bg-gray-100 hover:border-gray-300 active:scale-95
+                    peer-checked:scale-100 peer-checked:shadow-lg peer-checked:border-transparent
+                    flex flex-col items-center justify-center gap-1">
             
-            <i class="fas fa-${icon} text-lg mb-0.5 ${colorClass} opacity-60 group-hover:opacity-100 transition-opacity"></i>
-            
-            <span class="text-[10px] font-extrabold uppercase tracking-wider">${val}</span>
+            <i class="fas fa-${icon} text-3xl mb-1 ${colorClass} opacity-40 group-hover:opacity-80 peer-checked:opacity-100 transition-opacity"></i>
+            <span class="text-[11px] font-black uppercase tracking-widest peer-checked:text-white">${val}</span>
         </div>
         
-        <div class="absolute top-1 right-1 w-2 h-2 rounded-full bg-current opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+        <div class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-gray-200 peer-checked:bg-white transition-colors shadow-sm"></div>
     </label>`;
-}
-
-function renderTombol(id, val, icon) {
-    return `<label class="cursor-pointer group"><input type="radio" name="status_${id}" value="${val}" class="hidden" onchange="updateSummary()"><div class="py-1.5 rounded border border-gray-100 bg-gray-50 text-center text-xs font-semibold text-gray-400 transition group-hover:bg-gray-100 flex flex-col items-center gap-0.5"><i class="fas fa-${icon} text-[10px]"></i><span class="text-[9px]">${val}</span></div></label>`;
 }
 
 function updateSummary() {
@@ -199,44 +160,77 @@ function updateSummary() {
 function setAllHadir() {
     document.querySelectorAll('input[value="Hadir"]').forEach(r => r.checked = true);
     updateSummary();
-    Swal.fire({icon: 'success', title: 'Siap!', text: 'Semua Hadir', timer: 800, showConfirmButton: false});
+    const Toast = Swal.mixin({toast: true, position: 'top', showConfirmButton: false, timer: 1500});
+    Toast.fire({ icon: 'success', title: 'Semua Hadir' });
 }
 
-// --- FUNGSI LOGIN WALI KELAS (UPDATE UI NAVBAR) ---
 function loginWaliKelas() {
     Swal.fire({
         title: `Wali Kelas ${currentKelas}`, input: 'password', inputPlaceholder: 'Kode Akses...', confirmButtonColor: '#f97316', showCancelButton: true
     }).then((result) => {
         if (result.value === PASSWORD_WALI[currentKelas]) {
-            // Tampilkan Panel Wali Kelas
             document.getElementById('panelWaliKelas').classList.remove('hidden');
             document.getElementById('labelWaliKelas').innerText = `Kelas ${currentKelas}`;
-            
-            // Ubah Tombol di Navbar (Sembunyikan Masuk, Tampilkan Keluar)
             document.getElementById('btnMasukWali').classList.add('hidden');
             document.getElementById('btnKeluarWali').classList.remove('hidden');
-
             Swal.fire('Sukses', `Akses Wali Kelas ${currentKelas} Diterima.`, 'success');
         } else if (result.value) { Swal.fire('Gagal', 'Kode salah.', 'error'); }
     });
 }
 
-// --- FUNGSI LOGOUT WALI KELAS (BARU) ---
 function logoutWaliKelas() {
-    // Sembunyikan Panel
     document.getElementById('panelWaliKelas').classList.add('hidden');
-    
-    // Ubah Tombol di Navbar (Tampilkan Masuk, Sembunyikan Keluar)
     document.getElementById('btnMasukWali').classList.remove('hidden');
     document.getElementById('btnKeluarWali').classList.add('hidden');
+}
 
-    // Optional: Alert (Bisa dihapus jika mengganggu)
-    // Swal.fire({ icon: 'info', title: 'Mode Guru', text: 'Keluar dari mode Wali.', timer: 1000, showConfirmButton: false });
+function cekAbsensiHariIni() {
+    const notif = document.getElementById('syncNotif');
+    if(notif) {
+        notif.classList.remove('hidden');
+        notif.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cek data absensi tanggal ini...';
+    }
+
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+            action: 'get_latest_status',
+            header: { kelas: currentKelas, tanggal_raw: currentDateVal }
+        })
+    })
+    .then(res => res.json())
+    .then(response => {
+        if (response.result === 'success' && response.found) {
+            if(notif) {
+                notif.className = "mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-3 rounded shadow-md text-xs font-bold flex items-center gap-2";
+                notif.innerHTML = '<i class="fas fa-check-circle"></i> Data absensi hari ini ditemukan. Formulir diisi otomatis.';
+            }
+            const statuses = response.statuses; 
+            const siswaList = DB_SISWA[currentKelas];
+            if(siswaList && statuses) {
+                siswaList.forEach((siswa, index) => {
+                    if (statuses[index]) {
+                        const cleanStatus = statuses[index].trim();
+                        const radio = document.querySelector(`input[name="status_${siswa.id}"][value="${cleanStatus}"]`);
+                        if (radio) radio.checked = true;
+                    }
+                });
+            }
+            updateSummary();
+        } else {
+            if(notif) {
+                notif.className = "mb-4 bg-gray-100 border-l-4 border-gray-500 text-gray-700 p-3 rounded shadow-md text-xs font-bold flex items-center gap-2";
+                notif.innerHTML = '<i class="fas fa-info-circle"></i> Belum ada data absensi untuk tanggal/kelas ini.';
+            }
+            updateSummary();
+        }
+        if(notif) setTimeout(() => { notif.classList.add('hidden'); }, 3000);
+    })
+    .catch(err => { console.error(err); if(notif) notif.classList.add('hidden'); });
 }
 
 function kirimAbsensi() {
     if (isSubmitting) return;
-
     const btn = document.getElementById('btnKirim');
     const namaGuru = document.getElementById('namaGuru').value;
     const mapel = document.getElementById('mapel').value;
@@ -257,26 +251,18 @@ function kirimAbsensi() {
     btn.classList.add('opacity-50', 'cursor-not-allowed');
 
     const jamPelajaran = `${jamMulai}-${jamSelesai}`;
-    
     let listAbsen = [];
-    DB_SISWA[currentKelas].forEach(siswa => {
-        const radio = document.querySelector(`input[name="status_${siswa.id}"]:checked`);
-        listAbsen.push({ 
-            nama: siswa.nama, 
-            status: radio ? radio.value : "Alfa" 
+    const siswaList = DB_SISWA[currentKelas];
+    if(siswaList) {
+        siswaList.forEach(siswa => {
+            const radio = document.querySelector(`input[name="status_${siswa.id}"]:checked`);
+            listAbsen.push({ nama: siswa.nama, status: radio ? radio.value : "Alfa" });
         });
-    });
+    }
 
     const payload = {
         action: 'simpan',
-        header: {
-            kelas: currentKelas,
-            jam_pelajaran: jamPelajaran,
-            tanggal: tglInput, 
-            nama_guru: namaGuru,
-            mapel: mapel,
-            materi: materi
-        },
+        header: { kelas: currentKelas, jam_pelajaran: jamPelajaran, tanggal: tglInput, nama_guru: namaGuru, mapel: mapel, materi: materi },
         siswa: listAbsen
     };
 
@@ -287,7 +273,6 @@ function kirimAbsensi() {
             Swal.fire('Terkirim!', `Data Kelas ${currentKelas} Tersimpan.`, 'success');
             lastInsertedInfo = { startRow: response.startRow, count: 1, kelas: currentKelas };
             document.getElementById('undoContainer').classList.remove('hidden');
-            
             btn.innerHTML = originalBtnText;
             btn.disabled = false;
             btn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -306,27 +291,16 @@ function kirimAbsensi() {
 async function batalkanInput() {
     if(!lastInsertedInfo) return;
     if(lastInsertedInfo.kelas !== currentKelas) {
-        Swal.fire('Gagal', `Pindah ke Kelas ${lastInsertedInfo.kelas} dulu.`, 'error'); 
-        return;
+        Swal.fire('Gagal', `Pindah ke Kelas ${lastInsertedInfo.kelas} dulu.`, 'error'); return;
     }
-
     const result = await Swal.fire({ title: 'Hapus data ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus!' });
     if (result.isConfirmed) {
         Swal.fire({title: 'Menghapus...', allowOutsideClick: false, didOpen: () => {Swal.showLoading()}});
         try {
-            await fetch(SCRIPT_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ 
-                    action: 'hapus', 
-                    row: lastInsertedInfo.startRow, 
-                    count: 1, 
-                    header: { kelas: currentKelas } 
-                }) 
-            });
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'hapus', row: lastInsertedInfo.startRow, count: 1, header: { kelas: currentKelas } }) });
             Swal.fire('Dihapus!', '', 'success');
             document.getElementById('undoContainer').classList.add('hidden');
             lastInsertedInfo = null;
         } catch (e) { Swal.fire('Gagal', 'Koneksi bermasalah', 'error'); }
     }
 }
-
