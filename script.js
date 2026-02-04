@@ -1,11 +1,22 @@
 // ==========================================
-// KONFIGURASI
+// KONFIGURASI UTAMA
 // ==========================================
-// PENTING: GANTI DENGAN URL DEPLOY BARU ANDA!
+// 1. URL SCRIPT (Pastikan ini URL hasil Deploy terbaru Anda)
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeL2D-gu2wxNwcmcsAkp2cYOZxiet8V5LdwKQ7mcG_qKbxmX5VkcUQxk5tU3ZZtnJ-Zg/exec'; 
-const PASSWORD_WALI = { "7": "wali7", "8": "wali8", "9": "wali9" };
 
-// ARRAY KOSONG (Nanti diisi dari Sheet)
+// 2. ID SPREADSHEET (Diambil dari link yang Anda kirim)
+const SPREADSHEET_ID = "1dJzZGCJ4wbXd544GBjc7PATynD74zxiGAz7HQDlxmwE"; 
+
+// 3. ID SHEET (GID) PER KELAS (Sesuai data yang Anda berikan)
+const SHEET_GIDS = {
+    "7": "2076466100", // GID Kelas 7
+    "8": "0",          // GID Kelas 8 (Sheet Utama)
+    "9": "462314653"   // GID Kelas 9
+};
+
+const PASSWORD_WALI = { "7": "wali7", "8": "wali8", "9": "admin123" };
+
+// DATA SISWA (Akan diisi otomatis dari Google Sheet)
 let DB_SISWA = { "7": [], "8": [], "9": [] };
 
 let currentKelas = "9"; 
@@ -42,13 +53,29 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('wrapperJamMulai').addEventListener('click', () => fpMulai.open());
     document.getElementById('wrapperJamSelesai').addEventListener('click', () => document.querySelector('#jamSelesai')._flatpickr.open());
 
-    // --- PANGGIL DATA MASTER (GURU & SISWA) ---
+    // Ambil Data & Set Link Download Awal
     fetchDataMaster();
+    updateDownloadLinks(); 
 });
 
-// --- FUNGSI AMBIL DATA DARI SHEET ---
+// --- FUNGSI UPDATE LINK DOWNLOAD SESUAI KELAS (BARU) ---
+function updateDownloadLinks() {
+    const gid = SHEET_GIDS[currentKelas];
+    if (!gid && gid !== "0") return; // Cek validasi
+
+    const baseUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export`;
+    
+    // Link PDF: Hanya sheet yang dipilih (gid), ukuran A4, Portrait
+    const pdfUrl = `${baseUrl}?format=pdf&gid=${gid}&size=A4&portrait=true&fitw=true&gridlines=true`;
+    document.getElementById('btnDownloadPdf').href = pdfUrl;
+
+    // Link Excel: Hanya sheet yang dipilih (gid)
+    const xlsxUrl = `${baseUrl}?format=xlsx&gid=${gid}`;
+    document.getElementById('btnDownloadExcel').href = xlsxUrl;
+}
+
+// --- FUNGSI AMBIL DATA MASTER (GURU & SISWA) ---
 function fetchDataMaster() {
-    // Show Loading
     const selectGuru = document.getElementById('namaGuru');
     if(selectGuru) selectGuru.innerHTML = '<option>⏳ Sedang mengambil data...</option>';
     
@@ -62,10 +89,8 @@ function fetchDataMaster() {
     .then(res => res.json())
     .then(response => {
         if(response.result === 'success') {
-            // 1. ISI ARRAY SISWA
             DB_SISWA = response.students;
             
-            // 2. ISI DROPDOWN GURU
             if(selectGuru) {
                 selectGuru.innerHTML = '<option value="" disabled selected> Pilih Guru </option>';
                 response.gurus.forEach(guru => {
@@ -76,7 +101,6 @@ function fetchDataMaster() {
                 });
             }
 
-            // 3. RENDER ULANG
             renderSiswa();
             cekAbsensiHariIni();
             
@@ -95,6 +119,7 @@ function gantiKelas() {
     renderSiswa();
     logoutWaliKelas();
     cekAbsensiHariIni();
+    updateDownloadLinks(); // UPDATE LINK DOWNLOAD SAAT GANTI KELAS
 }
 
 function renderSiswa() {
@@ -103,7 +128,7 @@ function renderSiswa() {
     const siswaList = DB_SISWA[currentKelas];
     
     if (!siswaList || siswaList.length === 0) {
-        container.innerHTML = `<div class="col-span-full text-center py-10 text-white/50 italic">Belum ada data siswa untuk Kelas ${currentKelas} di Google Sheet (Tab Data_Siswa).</div>`;
+        container.innerHTML = `<div class="col-span-full text-center py-10 text-white/50 italic">Belum ada data siswa untuk Kelas ${currentKelas} di Google Sheet.</div>`;
         return;
     }
     
@@ -131,7 +156,6 @@ function renderSiswa() {
 }
 
 function renderTombol(id, val, icon, colorClass) {
-    // Height 20 (h-20) agar tombol tinggi dan mudah ditekan
     return `
     <label class="cursor-pointer group block relative h-20">
         <input type="radio" name="status_${id}" value="${val}" class="hidden peer" onchange="updateSummary()">
@@ -188,7 +212,7 @@ function cekAbsensiHariIni() {
     const notif = document.getElementById('syncNotif');
     if(notif) {
         notif.classList.remove('hidden');
-        notif.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cek data absensi hari ini...';
+        notif.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cek data absensi tanggal ini...';
     }
 
     fetch(SCRIPT_URL, {
@@ -304,6 +328,3 @@ async function batalkanInput() {
         } catch (e) { Swal.fire('Gagal', 'Koneksi bermasalah', 'error'); }
     }
 }
-
-
-
