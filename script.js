@@ -4,17 +4,17 @@
 // 1. URL SCRIPT (Pastikan ini URL hasil Deploy terbaru Anda)
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeL2D-gu2wxNwcmcsAkp2cYOZxiet8V5LdwKQ7mcG_qKbxmX5VkcUQxk5tU3ZZtnJ-Zg/exec'; 
 
-// 2. ID SPREADSHEET (Diambil dari link yang Anda kirim)
+// 2. ID SPREADSHEET
 const SPREADSHEET_ID = "1dJzZGCJ4wbXd544GBjc7PATynD74zxiGAz7HQDlxmwE"; 
 
 // 3. ID SHEET (GID) PER KELAS (Sesuai data yang Anda berikan)
 const SHEET_GIDS = {
     "7": "2076466100", // GID Kelas 7
-    "8": "0",          // GID Kelas 8 (Sheet Utama)
+    "8": "0",          // GID Kelas 8 (Sheet Utama/Default)
     "9": "462314653"   // GID Kelas 9
 };
 
-const PASSWORD_WALI = { "7": "wali7", "8": "wali8", "9": "wali9" };
+const PASSWORD_WALI = { "7": "wali7", "8": "wali8", "9": "admin123" };
 
 // DATA SISWA (Akan diisi otomatis dari Google Sheet)
 let DB_SISWA = { "7": [], "8": [], "9": [] };
@@ -58,19 +58,20 @@ document.addEventListener('DOMContentLoaded', () => {
     updateDownloadLinks(); 
 });
 
-// --- FUNGSI UPDATE LINK DOWNLOAD SESUAI KELAS (BARU) ---
+// --- PERBAIKAN: FUNGSI UPDATE LINK DOWNLOAD ---
 function updateDownloadLinks() {
     const gid = SHEET_GIDS[currentKelas];
     if (!gid && gid !== "0") return; // Cek validasi
 
     const baseUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export`;
     
-    // Link PDF: Hanya sheet yang dipilih (gid), ukuran A4, Portrait
-    const pdfUrl = `${baseUrl}?format=pdf&gid=${gid}&size=A4&portrait=true&fitw=true&gridlines=true`;
+    // PERBAIKAN DI SINI: Menambahkan "&single=true"
+    // Ini memaksa Google Sheet hanya mendownload 1 sheet saja (sesuai GID), bukan seluruh file.
+    const pdfUrl = `${baseUrl}?format=pdf&gid=${gid}&single=true&size=A4&portrait=true&fitw=true&gridlines=true`;
     document.getElementById('btnDownloadPdf').href = pdfUrl;
 
-    // Link Excel: Hanya sheet yang dipilih (gid)
-    const xlsxUrl = `${baseUrl}?format=xlsx&gid=${gid}`;
+    // Untuk Excel juga ditambahkan single=true agar aman
+    const xlsxUrl = `${baseUrl}?format=xlsx&gid=${gid}&single=true`;
     document.getElementById('btnDownloadExcel').href = xlsxUrl;
 }
 
@@ -119,7 +120,7 @@ function gantiKelas() {
     renderSiswa();
     logoutWaliKelas();
     cekAbsensiHariIni();
-    updateDownloadLinks(); // UPDATE LINK DOWNLOAD SAAT GANTI KELAS
+    updateDownloadLinks(); // UPDATE LINK SAAT GANTI KELAS
 }
 
 function renderSiswa() {
@@ -328,4 +329,3 @@ async function batalkanInput() {
         } catch (e) { Swal.fire('Gagal', 'Koneksi bermasalah', 'error'); }
     }
 }
-
