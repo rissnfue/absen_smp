@@ -188,7 +188,7 @@ function cekAbsensiHariIni() {
     const notif = document.getElementById('syncNotif');
     if(notif) {
         notif.classList.remove('hidden');
-        notif.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cek data absensi tanggal ini...';
+        notif.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cek data absensi hari ini...';
     }
 
     fetch(SCRIPT_URL, {
@@ -304,3 +304,4 @@ async function batalkanInput() {
         } catch (e) { Swal.fire('Gagal', 'Koneksi bermasalah', 'error'); }
     }
 }
+
