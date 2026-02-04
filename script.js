@@ -61,18 +61,25 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- PERBAIKAN: FUNGSI UPDATE LINK DOWNLOAD ---
 function updateDownloadLinks() {
     const gid = SHEET_GIDS[currentKelas];
-    if (!gid && gid !== "0") return; // Cek validasi
+    // Jika GID tidak ditemukan, jangan lakukan apa-apa
+    if (gid === undefined || gid === null) return; 
 
+    // URL dasar ekspor
     const baseUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export`;
     
-    // PERBAIKAN DI SINI: Menambahkan "&single=true"
-    // Ini memaksa Google Sheet hanya mendownload 1 sheet saja (sesuai GID), bukan seluruh file.
-    const pdfUrl = `${baseUrl}?format=pdf&gid=${gid}&single=true&size=A4&portrait=true&fitw=true&gridlines=true`;
-    document.getElementById('btnDownloadPdf').href = pdfUrl;
-
-    // Untuk Excel juga ditambahkan single=true agar aman
+    // Parameter 'single=true' dan 'gid=...' adalah kunci agar hanya 1 tab yang terdownload
+    // Parameter 'exportFormat=pdf' digunakan untuk memastikan format yang benar
+    const pdfUrl = `${baseUrl}?format=pdf&gid=${gid}&single=true&size=A4&portrait=true&fitw=true&gridlines=false&printtitle=false&sheetnames=false`;
     const xlsxUrl = `${baseUrl}?format=xlsx&gid=${gid}&single=true`;
-    document.getElementById('btnDownloadExcel').href = xlsxUrl;
+
+    // Pasang link ke tombol
+    const pdfBtn = document.getElementById('btnDownloadPdf');
+    const excelBtn = document.getElementById('btnDownloadExcel');
+
+    if (pdfBtn) pdfBtn.href = pdfUrl;
+    if (excelBtn) excelBtn.href = xlsxUrl;
+    
+    console.log("Link Download diperbarui untuk Kelas:", currentKelas, "dengan GID:", gid);
 }
 
 // --- FUNGSI AMBIL DATA MASTER (GURU & SISWA) ---
@@ -329,3 +336,4 @@ async function batalkanInput() {
         } catch (e) { Swal.fire('Gagal', 'Koneksi bermasalah', 'error'); }
     }
 }
+
