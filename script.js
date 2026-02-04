@@ -67,7 +67,7 @@ function fetchDataMaster() {
             
             // 2. ISI DROPDOWN GURU
             if(selectGuru) {
-                selectGuru.innerHTML = '<option value="" disabled selected>-- Pilih Guru --</option>';
+                selectGuru.innerHTML = '<option value="" disabled selected>Pilih Guru</option>';
                 response.gurus.forEach(guru => {
                     let option = document.createElement("option");
                     option.text = guru;
@@ -304,4 +304,5 @@ async function batalkanInput() {
         } catch (e) { Swal.fire('Gagal', 'Koneksi bermasalah', 'error'); }
     }
 }
+
 
